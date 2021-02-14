@@ -12,6 +12,9 @@ import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 public class RegistrationHandler implements HttpHandler {
 
     ChatAuthenticator auth = null;
@@ -45,38 +48,28 @@ public class RegistrationHandler implements HttpHandler {
                     code = 400;
                     responseBody = "No content type in request";
                 }
-                if (contentType.equalsIgnoreCase("text/plain")) {
+                    
+                if (contentType.equalsIgnoreCase("application/json")) {
+                   
                     InputStream stream = exchange.getRequestBody();
                     String text = new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8)).lines()
                             .collect(Collectors.joining("\n"));
                     ChatServer.log(text);
                     stream.close();
                     if (text.trim().length() > 0) {
-                        String [] items = text.split(":");
-                        if (items.length == 2) {
-                            if (items[0].trim().length() > 0 && items[1].trim().length() > 0) {
-
-                                if (auth.addUser(items[0], items[1])) {
-                                    exchange.sendResponseHeaders(code, -1);
-                                    ChatServer.log("Added as user");  
-                                } else {
-                                    code = 400;
-                                    responseBody = "Invalid user credentials";
-                                    ChatServer.log(responseBody);
-                                }
-
-                            } else {
-                                code = 400;
-                                responseBody = "Invalid user credentials";
-                                ChatServer.log(responseBody);
-                            }
+                        JSONObject registrationMsg = new JSONObject(text);
+                        String username = registrationMsg.getString("username");
+                        String password = registrationMsg.getString("password");
+                        String email = registrationMsg.getString("email");
+                        User newUser = new User(username, password, email);
+                        // luo tunnus käyttäjälle
+                        if (auth.addUser(newUser)) {
+                            exchange.sendResponseHeaders(code, -1);
+                            ChatServer.log("Added as user");
                         } else {
                             code = 400;
-                            responseBody = "Invalid user credentials";
-                            ChatServer.log(responseBody);
+                            responseBody = "registration failed";
                         }
-
-                       
                     } else {
                         code = 400;
                         responseBody = "No content in request";
@@ -84,18 +77,21 @@ public class RegistrationHandler implements HttpHandler {
                     }
                 } else {
                     code = 411;
-                    responseBody = "Content-Type must be text/plain.";
+                    responseBody = "Content-Type must be application/json";
                     ChatServer.log(responseBody);
-                    
                 }
             } else {
                 code = 400;
-                responseBody = "Not supported.";
+                responseBody = "Not supported";
             }
         } catch (IOException e) {
             code = 500;
             responseBody = "Error in handling the request: " + e.getMessage();
-        } catch (Exception e) {
+        } catch (JSONException e) {
+            code = 400;
+            responseBody = "JSON error" + e.getMessage();
+        }
+         catch (Exception e) {
             code = 500;
             responseBody = "Server error: " + e.getMessage();
         }
@@ -109,4 +105,5 @@ public class RegistrationHandler implements HttpHandler {
         }
 
     }
+
 }

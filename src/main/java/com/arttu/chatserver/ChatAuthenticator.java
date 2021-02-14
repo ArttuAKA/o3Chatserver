@@ -7,14 +7,14 @@ import com.sun.net.httpserver.BasicAuthenticator;
 
 public class ChatAuthenticator extends BasicAuthenticator {
 
-    private Map<String, String> users = null;
+    private Map<String, User> users = null;
 
 
     public ChatAuthenticator() {
         super("chat");
-        users = new Hashtable<String,String>();
-        users.put("dummy", "password");
-    }
+        users = new Hashtable<String, User>();
+        //users.put("dummy", "users");
+    } 
 
     
     @Override
@@ -26,9 +26,12 @@ public class ChatAuthenticator extends BasicAuthenticator {
         }
         return false;
     }
-    public boolean addUser(String username, String password) {
-        if (!users.containsKey(username)) {
-            users.put(username, password);
+    public boolean addUser(User user) {
+        if (!users.containsKey(user)) {
+            users.put(user.getName(), user);
+            //users.put(user.getPassword(), user);
+            //users.put(user.getEmail(), user);
+
             return true;
         }
         return false;
