@@ -6,7 +6,10 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -139,14 +142,17 @@ public class ChatHandler implements HttpHandler {
 			} else {
 				JSONArray responseMessages = new JSONArray();
 				DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MMdd'T'HH:mm:ss.SSSX");
-				responseMessages.put(jsonMessage);
+				//responseMessages.put(jsonMessage);
 				for (ChatMessage message : messages) {
+					LocalDateTime date = message.sent;
+					ZonedDateTime toSend = ZonedDateTime.of(date, ZoneId.of("UTC"));
+					String dateText = toSend.format(formatter);
 					responseBody += message + "\n";
 					JSONObject jsonmg = new JSONObject();
-					jsonmg.put("user", messages);
-					jsonmg.put("message", messages);
-					jsonmg.put("sent", messages);
-					formatter.toString();
+					jsonmg.put("user", message.nick);
+					jsonmg.put("message", message.message);
+					jsonmg.put("sent", dateText);
+					//formatter.toString();
 					responseMessages.put(jsonMessage);
 					
 				}
