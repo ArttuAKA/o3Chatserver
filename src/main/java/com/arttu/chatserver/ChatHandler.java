@@ -153,15 +153,16 @@ public class ChatHandler implements HttpHandler {
 
             lastModified = headers.get("If-Modified-Since").get(0);
 
-            try {
+            
                 ZonedDateTime zd = ZonedDateTime.parse(lastModified);
                 fromWhichDate = zd.toLocalDateTime();
                 messagesSince = fromWhichDate.toInstant(ZoneOffset.UTC).toEpochMilli();
-            } catch (DateTimeException e) {
-                System.out.println("Wrong date in ff-modified-since header");
-            }
+            
 
         }
+		else {
+			System.out.println("If modified not found");
+		}
 		messages = db.getMessages(messagesSince);
 
 		
