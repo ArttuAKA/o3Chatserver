@@ -18,7 +18,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-//http://localhost:8001/Chat
 import java.util.stream.Collectors;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
@@ -119,13 +118,11 @@ public class ChatHandler implements HttpHandler {
 	
 	private void processMessage( String text) throws JSONException, SQLException{
 		JSONObject jsonObject = new JSONObject(text);
-		//ChatMessage newMessage = new ChatMessage();
-		//newMessage.nick = jsonObject.getString("user");
+		
 		String dateStr = jsonObject.getString("sent");
 		OffsetDateTime odt = OffsetDateTime.parse(dateStr);
 		LocalDateTime sent = odt.toLocalDateTime();
-		//newMessage.sent = odt.toLocalDateTime();
-		//newMessage.message = jsonObject.getString("message");
+		
 		String message = jsonObject.getString("message");
 		String nick = jsonObject.getString("user");
 		ChatMessage newMessage = new ChatMessage(nick, message, sent);
@@ -153,16 +150,15 @@ public class ChatHandler implements HttpHandler {
 
             lastModified = headers.get("If-Modified-Since").get(0);
 
-            
+            try {
                 ZonedDateTime zd = ZonedDateTime.parse(lastModified);
                 fromWhichDate = zd.toLocalDateTime();
                 messagesSince = fromWhichDate.toInstant(ZoneOffset.UTC).toEpochMilli();
-            
+            } catch (DateTimeException e) {
+                System.out.println("Wrong date in ff-modified-since header");
+            }
 
         }
-		else {
-			System.out.println("If modified not found");
-		}
 		messages = db.getMessages(messagesSince);
 
 		
@@ -204,7 +200,7 @@ public class ChatHandler implements HttpHandler {
 		ChatServer.log("Delivering " + messages.size() + " messages to client");
 		String all = responseMessages.toString();
 		byte [] bytes = all.getBytes("UTF-8");
-		//bytes = responseBody.toString().getBytes("UTF-8");
+		
 		exchange.sendResponseHeaders(code, bytes.length);
 		OutputStream os = exchange.getResponseBody();
 		os.write(bytes);
