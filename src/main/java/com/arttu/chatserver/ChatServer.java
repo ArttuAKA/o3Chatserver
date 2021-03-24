@@ -32,7 +32,7 @@ public class ChatServer {
         try {
             log("Launching ChatServer...");
             ChatDatabase database = ChatDatabase.getInstance();
-            
+            database.open("");
             HttpsServer server = HttpsServer.create(new InetSocketAddress(8001), 0);
             SSLContext sslContext = chatServerSSLContext();
             server.setHttpsConfigurator (new HttpsConfigurator(sslContext) {
@@ -44,7 +44,7 @@ public class ChatServer {
                 }
             });
             ChatAuthenticator auth = new ChatAuthenticator();
-            HttpContext chatContext = server.createContext("/Chat", new ChatHandler());
+            HttpContext chatContext = server.createContext("/chat", new ChatHandler());
             chatContext.setAuthenticator(auth);
             server.createContext("/registration", new RegistrationHandler(auth));
             server.setExecutor(null);

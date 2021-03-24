@@ -14,13 +14,22 @@ class User {
     public String getName() {
         return username;
     }
+    //public void setName(String newName) {
+      //  this.username = newName;
+      //}
 
     public String getPassword() {
         return password;
     }
+    //public void setPassword (String newPassword ) {
+      //  this.password = newPassword;
+    //}
 
     public String getEmail() {
         return email;
     }
+    //public void setEmail (String newEmail){
+      //  this.email = newEmail;
+    //}
     
 }

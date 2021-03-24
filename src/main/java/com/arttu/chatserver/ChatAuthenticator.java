@@ -1,39 +1,40 @@
 package com.arttu.chatserver;
 
-import java.util.Hashtable;
-import java.util.Map;
+import java.nio.charset.Charset;
+import java.sql.SQLException;
+
 
 import com.sun.net.httpserver.BasicAuthenticator;
 
 public class ChatAuthenticator extends BasicAuthenticator {
 
-    private Map<String, User> users = null;
+    
 
 
     public ChatAuthenticator() {
         super("chat");
-        users = new Hashtable<String, User>();
-        //users.put("dummy", "users");
+        
     } 
 
     
     @Override
     public boolean checkCredentials(String username, String password) {
-        if (users.containsKey(username)) {
-            if (users.get(username).equals(password)) {
-                return true;
-            }
+        try {
+            return ChatDatabase.getInstance().authenticateUser(username, password);
+        } catch (SQLException e) {
+            
+            e.printStackTrace();
         }
         return false;
+        
     }
-    public boolean addUser(User user) {
-        if (!users.containsKey(user)) {
-            users.put(user.getName(), user);
-            //users.put(user.getPassword(), user);
-            //users.put(user.getEmail(), user);
-
-            return true;
+    public boolean addUser(User user) throws SQLException {
+        
+        if (Charset.forName("US-ASCII").newEncoder().canEncode(user.getName())) {
+            return ChatDatabase.getInstance().addUser(user);
         }
+        
+        
         return false;
     }
     
