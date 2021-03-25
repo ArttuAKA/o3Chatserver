@@ -4,6 +4,7 @@ import java.io.File;
 import java.security.SecureRandom;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -72,7 +73,7 @@ public class ChatDatabase {
            " nick VARCHAR(255), " +
            " message VARCHAR(255) not NULL, " + 
            " sent VARCHAR(255) not NULL) ";  
-           //" PRIMARY KEY ( id ))";  
+             
            Statement createMsgStatement = dbconnection.createStatement();
            createMsgStatement.executeUpdate(createMessageString);
            createMsgStatement.close();
@@ -164,18 +165,28 @@ public class ChatDatabase {
         createStatement.close();
     }
 
-    ArrayList<ChatMessage> getMessages(long since) throws SQLException {    
+    ArrayList<ChatMessage> getMessages(long messagesSince) throws SQLException {    
         ArrayList<ChatMessage> messages = null;
-        Statement queryStatement = null;
-
-        String queryMessages = "SELECT nick, sent, message FROM Message";
-        if (since > 0) {
-            queryMessages += "WHERE sent > " + since + " ";
-        }
-        queryMessages += " order by sent desc";
-        ChatServer.log(queryMessages);
+        Statement queryStatement;
+        String queryMessages;
+        PreparedStatement pr;
         queryStatement = dbconnection.createStatement();
-        ResultSet rs = queryStatement.executeQuery(queryMessages);
+        
+        if (messagesSince == -1) {
+            queryMessages = "SELECT message, nick, sent"
+            + " FROM Message WHERE sent > ? ORDER BY sent DESC LIMIT 100";
+          
+        pr = dbconnection.prepareStatement(queryMessages);
+        pr.setLong(1, messagesSince);
+        }
+        else {
+            queryMessages = "SELECT nick, sent, message "
+            + "FROM Message ORDER BY sent DESC";
+            pr = dbconnection.prepareStatement(queryMessages);
+        }
+        ChatServer.log(queryMessages);
+        
+        ResultSet rs = pr.executeQuery();
         int recordCount = 0;
         while (rs.next() ) {                       //&& recordCount < MAX_NUMBER_OF_RECORDS_TO_FETCH
             if (null == messages) {
